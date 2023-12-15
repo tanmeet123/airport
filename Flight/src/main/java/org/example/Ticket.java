@@ -9,7 +9,7 @@ public class Ticket {
     public Ticket() {
     }
 
-    public Ticket(String title, Integer ID, Float price, String category) {
+    public Ticket(Integer ID, String title, Float price, String category) {
         this.title = title;
         this.ID = ID;
         this.price = price;
