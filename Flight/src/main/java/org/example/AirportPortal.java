@@ -40,18 +40,11 @@ public class AirportPortal implements Booking {
             throw new RuntimeException(e);
         }
         AirportPortal portal = new AirportPortal();
-        String exit = "";
+        int exit = 0;
 
         while (true) {
             System.out.println("\t1. Add Booking\n\t2. Remove Booking\n\t4. Find Bookings");
-            System.out.println("Exit? (n)");
-            try {
-                exit = portal.buff.readLine();
-            } catch (Exception e) {
 
-            }
-            if(exit.equals('n'))
-                break;
             int choose = 0;
             try {
                 choose = Integer.parseInt(portal.buff.readLine());
@@ -79,8 +72,17 @@ public class AirportPortal implements Booking {
                     portal.removeBooking(idd);
                     System.out.println("ticket removed successfully");
                     break;
+            }
+            System.out.println("Exit? (1)");
+            try {
+                exit = Integer.parseInt(portal.buff.readLine());
+            } catch (Exception e) {
+
+            }
+            if (exit==1)
+                break;
         }
-    }}
+    }
 
     public void addBooking(Ticket ticket) {
         String title = "", category = "";
@@ -93,7 +95,7 @@ public class AirportPortal implements Booking {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Title:");
+        System.out.println("place:");
         try {
             title = (buff.readLine());
         } catch (IOException e) {
@@ -114,11 +116,11 @@ public class AirportPortal implements Booking {
         ticket = new Ticket(id, title, price, category);
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("insert into tickets values(?, ?, ?, ?, ?)");
+            PreparedStatement preparedStatement = connection.prepareStatement("insert into tickets values(?, ?, ?, ?)");
             preparedStatement.setInt(1, ticket.getID());
-            preparedStatement.setString(3, ticket.getTitle());
-            preparedStatement.setFloat(4, ticket.getPrice());
-            preparedStatement.setString(5, ticket.getCategory());
+            preparedStatement.setString(2, ticket.getTitle());
+            preparedStatement.setFloat(3, ticket.getPrice());
+            preparedStatement.setString(4, ticket.getCategory());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
