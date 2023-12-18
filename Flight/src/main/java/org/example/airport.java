@@ -9,6 +9,8 @@ import com.mongodb.client.*;
 import com.mongodb.MongoCredential;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.InsertOneResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -21,7 +23,7 @@ public class airport implements Booking {
     Statement statement;
     MongoDatabase database;
 
-    airport() {
+    public airport() {
         try {
             if (isr == null) {
                 isr = new InputStreamReader(System.in);
@@ -102,7 +104,7 @@ public class airport implements Booking {
         }
     }
 
-    public void addBooking(Ticket ticket) {
+    public InsertOneResult addBooking(Ticket ticket) {
         String title = "", category = "";
         int id = 0;
         float price = 0.0f;
@@ -132,14 +134,15 @@ public class airport implements Booking {
             e.printStackTrace();
         }
         ticket = new Ticket(id, title, price, category);
-
+        InsertOneResult result;
         try {
             Document document = new Document();
             document.append("id",ticket.getID());
             document.append("title", ticket.getTitle());
             document.append("price", ticket.getPrice());
             document.append("category", ticket.getCategory());
-            database.getCollection("ticket").insertOne(document);
+
+            result = database.getCollection("ticket").insertOne(document);
             //PreparedStatement preparedStatement = connection.prepareStatement("insert into tickets values(?, ?, ?, ?)");
             //preparedStatement.setInt(1, ticket.getID());
             //preparedStatement.setString(2, ticket.getTitle());
@@ -149,20 +152,24 @@ public class airport implements Booking {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return result;
     }
 
-    public void removeBooking(int id) {
+    public DeleteResult removeBooking(int id) {
+        DeleteResult resultSet;
         try {
-            database.getCollection("ticket").deleteOne(eq("id", id));
+            resultSet = database.getCollection("ticket").deleteOne(eq("id", id));
             //PreparedStatement preparedStatement = connection.prepareStatement("delete from tickets where id=(?)");
             //preparedStatement.setInt(1, id);
             //preparedStatement.executeUpdate();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return resultSet;
     }
 
-    public void findBookingById(int id) {
+    public Document findBookingById(int id) {
+        Document result;
         try {
             //PreparedStatement preparedStatement = connection.prepareStatement("select * from tickets where price=(?)");
             //preparedStatement.setInt(1, id);
@@ -172,6 +179,7 @@ public class airport implements Booking {
             //Bson projection = Projections.fields(Projections.include("id","title","price","category"));
             FindIterable<Document> document = mongoCollection.find(filter);//.projection(projection);
             MongoCursor<Document> cursor = document.iterator();
+            result = cursor.next();
             while (cursor.hasNext()) {
                 //Ticket ticket = new Ticket();resultSet.next()
                 //ticket.setID(resultSet.getInt(1));
@@ -183,5 +191,6 @@ public class airport implements Booking {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return result;
     }
 }
