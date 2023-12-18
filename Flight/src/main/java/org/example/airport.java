@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.*;
 
-public class AirportPortal implements Booking {
+public class airport implements Booking {
     InputStreamReader isr;
     BufferedReader buff;
     Connection connection;
     Statement statement;
 
-    AirportPortal() {
+    airport() {
         try {
             if (isr == null) {
                 isr = new InputStreamReader(System.in);
@@ -39,7 +39,7 @@ public class AirportPortal implements Booking {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        AirportPortal portal = new AirportPortal();
+        airport portal = new airport();
         int exit = 0;
 
         while (true) {
