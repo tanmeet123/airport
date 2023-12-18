@@ -5,11 +5,21 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.*;
 
+import com.mongodb.client.*;
+import com.mongodb.MongoCredential;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import static com.mongodb.client.model.Filters.eq;
+
 public class airport implements Booking {
     InputStreamReader isr;
     BufferedReader buff;
     Connection connection;
     Statement statement;
+    MongoDatabase database;
 
     airport() {
         try {
@@ -20,10 +30,13 @@ public class airport implements Booking {
                 buff = new BufferedReader(isr);
             }
 
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
-            this.connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/workingDB", "root", "tanmeet");
-            this.statement = connection.createStatement();
+            MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017");
+            System.out.println("Successfully Connected to the database");
+            database = mongoClient.getDatabase("tickets");
+            database.createCollection("ticket");
+            //Class.forName("com.mysql.cj.jdbc.Driver");
+            //this.connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/workingDB", "root", "tanmeet");
+            //this.statement = connection.createStatement();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -33,17 +46,18 @@ public class airport implements Booking {
     Ticket ticket = null;
 
     public static void main(String[] args) {
-        Ticket ticket = new Ticket();
+        Ticket ticket = new Ticket();airport portal = new airport();
         try {
             ticket = new Ticket();
+            MongoCollection<Document> collection = portal.database.getCollection("ticket");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        airport portal = new airport();
+
         int exit = 0;
 
         while (true) {
-            System.out.println("\t1. Add Booking\n\t2. Remove Booking\n\t4. Find Bookings");
+            System.out.println("\t1. Add Booking\n\t2. Remove Booking\n\t3. Find Bookings");
 
             int choose = 0;
             try {
@@ -51,26 +65,30 @@ public class airport implements Booking {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            int id = 0;
             switch (choose) {
                 case 1:
                     portal.addBooking(ticket);
                     System.out.println("ticket added successfully!");
                     break;
                 case 2:
-                    int id = 2;
-                    portal.removeBooking(id);
-                    System.out.println("ticket removed successfully!");
-                    break;
-                case 3:
-                    int idd = 2;
                     System.out.println("Please enter ID of the ticket to find:");
                     try {
                         id = Integer.parseInt(portal.buff.readLine());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    portal.removeBooking(idd);
-                    System.out.println("ticket removed successfully");
+                    portal.removeBooking(id);
+                    System.out.println("ticket removed successfully!");
+                    break;
+                case 3:
+                    System.out.println("Please enter ID of the ticket to find:");
+                    try {
+                        id = Integer.parseInt(portal.buff.readLine());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    portal.findBookingById(id);
                     break;
             }
             System.out.println("Exit? (1)");
@@ -116,42 +134,53 @@ public class airport implements Booking {
         ticket = new Ticket(id, title, price, category);
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("insert into tickets values(?, ?, ?, ?)");
-            preparedStatement.setInt(1, ticket.getID());
-            preparedStatement.setString(2, ticket.getTitle());
-            preparedStatement.setFloat(3, ticket.getPrice());
-            preparedStatement.setString(4, ticket.getCategory());
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
+            Document document = new Document();
+            document.append("id",ticket.getID());
+            document.append("title", ticket.getTitle());
+            document.append("price", ticket.getPrice());
+            document.append("category", ticket.getCategory());
+            database.getCollection("ticket").insertOne(document);
+            //PreparedStatement preparedStatement = connection.prepareStatement("insert into tickets values(?, ?, ?, ?)");
+            //preparedStatement.setInt(1, ticket.getID());
+            //preparedStatement.setString(2, ticket.getTitle());
+            //preparedStatement.setFloat(3, ticket.getPrice());
+            //preparedStatement.setString(4, ticket.getCategory());
+            //preparedStatement.executeUpdate();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     public void removeBooking(int id) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("delete from tickets where id=(?)");
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
+            database.getCollection("ticket").deleteOne(eq("id", id));
+            //PreparedStatement preparedStatement = connection.prepareStatement("delete from tickets where id=(?)");
+            //preparedStatement.setInt(1, id);
+            //preparedStatement.executeUpdate();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     public void findBookingById(int id) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("select * from tickets where price=(?)");
-            preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                Ticket ticket = new Ticket();
-                ticket.setID(resultSet.getInt(1));
-                ticket.setTitle(resultSet.getString(3));
-                ticket.setPrice(resultSet.getFloat(4));
-                ticket.setCategory(resultSet.getString(5));
-                System.out.println(ticket.getID() + " , " + ticket.getTitle() + " , " + ticket.getPrice() + " , " + ticket.getCategory());
+            //PreparedStatement preparedStatement = connection.prepareStatement("select * from tickets where price=(?)");
+            //preparedStatement.setInt(1, id);
+            //resultSet = preparedStatement.executeQuery();
+            MongoCollection<Document> mongoCollection = database.getCollection("ticket");
+            Bson filter = Filters.eq("id", id);
+            //Bson projection = Projections.fields(Projections.include("id","title","price","category"));
+            FindIterable<Document> document = mongoCollection.find(filter);//.projection(projection);
+            MongoCursor<Document> cursor = document.iterator();
+            while (cursor.hasNext()) {
+                //Ticket ticket = new Ticket();resultSet.next()
+                //ticket.setID(resultSet.getInt(1));
+                //ticket.setTitle(resultSet.getString(3));
+                //ticket.setPrice(resultSet.getFloat(4));
+                //ticket.setCategory(resultSet.getString(5));
+                System.out.println(cursor.next());
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
