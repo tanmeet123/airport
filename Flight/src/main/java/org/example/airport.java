@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import com.mongodb.client.*;
 import com.mongodb.MongoCredential;
@@ -15,6 +18,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import static com.mongodb.client.model.Filters.eq;
+import static java.util.logging.Level.ALL;
 
 public class airport implements Booking {
     InputStreamReader isr;
@@ -22,6 +26,8 @@ public class airport implements Booking {
     Connection connection;
     Statement statement;
     MongoDatabase database;
+    LogManager logManager = LogManager.getLogManager();
+    Logger logger = logManager.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     public airport() {
         try {
@@ -33,7 +39,7 @@ public class airport implements Booking {
             }
 
             MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017");
-            System.out.println("Successfully Connected to the database");
+            logger.log(Level.INFO,"Successfully Connected to the database");
             database = mongoClient.getDatabase("tickets");
             database.createCollection("ticket");
             //Class.forName("com.mysql.cj.jdbc.Driver");
@@ -48,7 +54,8 @@ public class airport implements Booking {
     Ticket ticket = null;
 
     public static void main(String[] args) {
-        Ticket ticket = new Ticket();airport portal = new airport();
+        Ticket ticket = new Ticket();
+        airport portal = new airport();
         try {
             ticket = new Ticket();
             MongoCollection<Document> collection = portal.database.getCollection("ticket");
@@ -59,7 +66,7 @@ public class airport implements Booking {
         int exit = 0;
 
         while (true) {
-            System.out.println("\t1. Add Booking\n\t2. Remove Booking\n\t3. Find Bookings");
+            portal.logger.log(Level.INFO,"\t1. Add Booking\n\t2. Remove Booking\n\t3. Find Bookings");
 
             int choose = 0;
             try {
@@ -71,20 +78,20 @@ public class airport implements Booking {
             switch (choose) {
                 case 1:
                     portal.addBooking(ticket);
-                    System.out.println("ticket added successfully!");
+                    portal.logger.log(Level.INFO,"ticket added successfully!");
                     break;
                 case 2:
-                    System.out.println("Please enter ID of the ticket to find:");
+                    portal.logger.log(Level.INFO,"Please enter ID of the ticket to find:");
                     try {
                         id = Integer.parseInt(portal.buff.readLine());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     portal.removeBooking(id);
-                    System.out.println("ticket removed successfully!");
+                    portal.logger.log(Level.INFO,"ticket removed successfully!");
                     break;
                 case 3:
-                    System.out.println("Please enter ID of the ticket to find:");
+                    portal.logger.log(Level.INFO,"Please enter ID of the ticket to find:");
                     try {
                         id = Integer.parseInt(portal.buff.readLine());
                     } catch (IOException e) {
@@ -93,13 +100,13 @@ public class airport implements Booking {
                     portal.findBookingById(id);
                     break;
             }
-            System.out.println("Exit? (1)");
+            portal.logger.log(Level.INFO,"Exit? (1)");
             try {
                 exit = Integer.parseInt(portal.buff.readLine());
             } catch (Exception e) {
 
             }
-            if (exit==1)
+            if (exit == 1)
                 break;
         }
     }
@@ -108,26 +115,26 @@ public class airport implements Booking {
         String title = "", category = "";
         int id = 0;
         float price = 0.0f;
-        System.out.println("Please enter your the following details:");
-        System.out.println("ID:");
+        logger.log(Level.INFO,"Please enter your the following details:");
+        logger.log(Level.INFO,"ID:");
         try {
             id = Integer.parseInt(buff.readLine());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("place:");
+        logger.log(Level.INFO,"place:");
         try {
             title = (buff.readLine());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("price:");
+        logger.log(Level.INFO,"price:");
         try {
             price = Float.parseFloat(buff.readLine());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Category:");
+        logger.log(Level.INFO,"Category:");
         try {
             category = (buff.readLine());
         } catch (IOException e) {
@@ -137,7 +144,7 @@ public class airport implements Booking {
         InsertOneResult result;
         try {
             Document document = new Document();
-            document.append("id",ticket.getID());
+            document.append("id", ticket.getID());
             document.append("title", ticket.getTitle());
             document.append("price", ticket.getPrice());
             document.append("category", ticket.getCategory());
@@ -186,7 +193,7 @@ public class airport implements Booking {
                 //ticket.setTitle(resultSet.getString(3));
                 //ticket.setPrice(resultSet.getFloat(4));
                 //ticket.setCategory(resultSet.getString(5));
-                System.out.println(cursor.next());
+                logger.log(ALL, String.valueOf(cursor.next()));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
