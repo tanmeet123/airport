@@ -16,6 +16,7 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertOneResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import static com.mongodb.client.model.Filters.eq;
 import static java.util.logging.Level.ALL;
@@ -77,6 +78,35 @@ public class airport implements Booking {
             int id = 0;
             switch (choose) {
                 case 1:
+                    String title = "", category = "";
+
+                    float price = 0.0f;
+                    portal.logger.log(Level.INFO,"Please enter your the following details:");
+                    portal.logger.log(Level.INFO,"ID:");
+                    try {
+                        id = Integer.parseInt(portal.buff.readLine());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    portal.logger.log(Level.INFO,"place:");
+                    try {
+                        title = (portal.buff.readLine());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    portal.logger.log(Level.INFO,"price:");
+                    try {
+                        price = Float.parseFloat(portal.buff.readLine());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    portal.logger.log(Level.INFO,"Category:");
+                    try {
+                        category = (portal.buff.readLine());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    ticket = new Ticket(id, title, price, category);
                     portal.addBooking(ticket);
                     portal.logger.log(Level.INFO,"ticket added successfully!");
                     break;
@@ -112,35 +142,7 @@ public class airport implements Booking {
     }
 
     public InsertOneResult addBooking(Ticket ticket) {
-        String title = "", category = "";
-        int id = 0;
-        float price = 0.0f;
-        logger.log(Level.INFO,"Please enter your the following details:");
-        logger.log(Level.INFO,"ID:");
-        try {
-            id = Integer.parseInt(buff.readLine());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        logger.log(Level.INFO,"place:");
-        try {
-            title = (buff.readLine());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        logger.log(Level.INFO,"price:");
-        try {
-            price = Float.parseFloat(buff.readLine());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        logger.log(Level.INFO,"Category:");
-        try {
-            category = (buff.readLine());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        ticket = new Ticket(id, title, price, category);
+
         InsertOneResult result;
         try {
             Document document = new Document();

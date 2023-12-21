@@ -17,12 +17,12 @@ public class TestClass {
     airport a = new airport();
     @Test
     void addBookingTest(){
-        Document document = new Document();
-        document.append("id",101).append("title", "test").append("price", "1000").append("category", "test");
-        InsertOneResult expected = db.getCollection("ticket").insertOne(document);
+        //Document document = new Document();
+        //document.append("id",101).append("title", "test").append("price", "1000f").append("category", "test");
+        //InsertOneResult expected = db.getCollection("ticket").insertOne(document);
         Ticket ticket = new Ticket(101, "test", 1000f, "test");
         InsertOneResult actual = a.addBooking(ticket);
-        Assertions.assertEquals(expected, actual);
+        Assertions.assertEquals(true, actual.wasAcknowledged());
     }
     @Test
     void FindBookingTest(){
@@ -41,7 +41,7 @@ public class TestClass {
         Document document = new Document();
         document.append("id",101).append("title", "test").append("price", "1000").append("category", "test");
         DeleteResult actual = a.removeBooking(101);
-
+        Assertions.assertEquals(expected, actual);
     }
 
 }
